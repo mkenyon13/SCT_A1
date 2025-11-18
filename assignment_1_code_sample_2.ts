@@ -2,6 +2,11 @@ import * as readline from 'readline';
 import * as mysql from 'mysql';
 import { exec } from 'child_process';
 import * as http from 'http';
+import * as dotenv from "dotenv"
+
+// load variables from .env file
+dotenv.config()
+
 /**
  * This is a OWASP A02:2021 Cryptographic Failure.
 The problem is that the username and the password for the database is being shared in the code.
@@ -12,10 +17,10 @@ then you can import them to the main file and just use the variables from the .e
 to make sure that the .env file is not uploaded to GitHub you can put it into a .gitiignore file.
  */
 const dbConfig = {
-    host: 'mydatabase.com',
-    user: 'admin',
-    password: 'secret123',
-    database: 'mydb'
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
 };
 /**
  * 
@@ -41,8 +46,10 @@ doing this will make it safer because it does not trust the users inputs.
  */
     return new Promise((resolve) => {
         rl.question('Enter your name: ', (answer) => {
+            // added basic input validation so the user can only add letters and numbers. 
+            const cleanedAnswer = answer.replace(/[^a-zA-Z\s]/g, '').trim();
             rl.close();
-            resolve(answer);
+            resolve(cleanedAnswer);
         });
     });
 }
@@ -62,9 +69,10 @@ function sendEmail(to: string, subject: string, body: string) {
 the problem with this is that the code is using http instead of https which sends the data without encryption. this can cause a problem because anyone can change the data.
 to fix this security problem just change the http to https.
  */
+// changed it to https insted of http
 function getData(): Promise<string> {
     return new Promise((resolve, reject) => {
-        http.get('http://insecure-api.com/get-data', (res) => {
+        http.get('https://insecure-api.com/get-data', (res) => {
             let data = '';
             res.on('data', chunk => data += chunk);
             res.on('end', () => resolve(data));
@@ -84,7 +92,8 @@ function saveToDb(data: string) {
     connection.connect();
     connection.query(query, (error, results) => {
         if (error) {
-            console.error('Error executing query:', error);
+            // removed the error from the output so it does not leak sensative information
+            console.error('Error executing query:');
         } else {
             console.log('Data saved');
         }
