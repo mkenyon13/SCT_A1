@@ -81,8 +81,8 @@ function getData(): Promise<string> {
 }
 
 function saveToDb(data: string) {
-    const connection = mysql.createConnection(dbConfig);
-    const query = `INSERT INTO mytable (column1, column2) VALUES ('${data}', 'Another Value')`;
+    const query = 'INSERT INTO mytable (column1, column2) VALUES (?, ?)';
+    const values = [data, 'Another Value'];
 
     /**
      * // OWASP A09:2021 Security Logging and Monitoring Failures
